@@ -1,0 +1,742 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+
+
+/* Global declarations */
+
+int charClass;
+char lexeme[100];
+char nextChar;
+int lexLen;
+int nextToken;
+int token;
+using namespace std; 
+FILE *newfile;
+
+/* Function Declarations*/
+int lookup(char ch);
+void addChar(void);
+void getNonSpace(void);
+int lex(void);
+
+
+/*Character Classes*/
+
+#define LETTER 0
+#define DIGIT 1
+#define UNKNOWN 99
+#define INT_LIT 10
+#define R_LIT 34
+#define NAT 47
+#define STR 35 
+#define LET 36
+#define BOOL 37
+#define CH 11 
+#define IDENT 48
+#define TAB 49
+#define BACK 50
+#define NEW_LINE 51
+#define S_QUOTE 52
+#define D_QUOTE 53 
+#define BACK_SLASH 54
+
+/* Token codes */
+#define ASSIGN_OP 20
+#define ADD_OP 21
+#define SUB_OP 22
+#define MULT_OP 23
+#define MOD_OP 24
+#define LEFT_PAREN 25
+#define RIGHT_PAREN 26
+#define GRTR_THAN 27
+#define LESS_THAN 28
+#define EQUA_TO 29
+#define I_F 30 
+#define DIV_OP 31 
+#define LE_T 34
+#define GE_T 35 
+#define E_T 36
+#define NE_T 32
+#define E_ST 33
+#define R_CURL 38
+#define L_CURL 39 
+#define LO_OP 40
+#define UN_OP 41
+#define L_NOT 42
+#define L_AND 43
+#define L_OR 44 
+#define C_MMA 45 
+#define EX_PO 46
+
+class Token{
+int token;
+char lexeme[200];
+};
+// compiler class 
+int main(void) {
+	/* Open the input data file and process its contents */
+	fstream newfile;
+  newfile.open("/home/runner/test2-1/file9.txt", ios_base::in );
+  if(!newfile){
+    printf("No file exists");
+  }    newfile.open("tpoint.txt",ios::in); 
+   if (newfile.is_open()){ 
+      string tp;
+      while(getline(newfile, tp)){ 
+         cout << tp << "  ";
+        }
+     }
+  }
+class Lex {
+/* This function looks up the operators and returns the token assocaited with it.
+real_literal --> real 
+addition (ADD_OP) --> +
+subtraction (SUB_OP) --> -
+multiplication (MULT_OP) --> *
+division (DIV_OP) --> /
+module (MOD_OP) --> %
+less than (L_T) --> <
+greater than (G_T) --> >
+less than equal to (L_TET) --> <==
+greater than equal to (G_TET) --> >==
+equal to (E_T) --> =
+not equal to (NE_T) --> !==
+left parantheses (L_PAREN) --> (
+right parantheses (R_PARE) --> )
+end of statement (E_ST) --> ;
+left curly braces (L_CURL) -> {
+right curly braces (R_CURL) --> }
+paramter seperator aka comma --> ,
+symbols to specify parameters of a function --> ** id (parameter 1, parameter2)
+logical not --> !
+logical and --> &
+logical or --> |
+exponentiation --> ^ 
+
+
+*/
+int lookup(char ch){
+    switch (ch){
+        case '(':
+        addChar();
+        nextToken = LEFT_PAREN;
+        break;
+        case ')':
+        addChar();
+        nextToken = RIGHT_PAREN;
+        case '+':
+        addChar();
+        nextToken = ADD_OP;
+        break;
+        case '-':
+        addChar();
+        nextToken = SUB_OP;
+        break;
+        case '*':
+        addChar();
+        nextToken = MULT_OP;
+        break;
+        case '/':
+        addChar();
+        nextToken = DIV_OP;
+        break;
+        case '%':
+        addChar();
+        nextToken = MOD_OP;
+        break;
+        case '<==' :
+        addChar();
+        nextToken = LESS_THAN;
+        break;
+        case '>==':
+        addChar();
+        nextToken = GRTR_THAN;
+        break;
+        case '==':
+        addChar();
+        nextToken = EQUA_TO;
+        break;
+        case '<':
+        addChar();
+        nextToken = LE_T;
+        break;
+        case '>':
+        addChar();
+        nextToken = GE_T;
+        break;
+        case ';':
+        addChar();
+        nextToken = E_ST;
+        break;
+        case '!==':
+        addChar();
+        nextToken = NE_T;
+        break;
+      case '$':
+        addChar();
+        nextToken = I_F;
+        break;
+       case '{':
+        addChar();
+        nextToken = L_CURL;
+        break;
+       case '}':
+        addChar();
+        nextToken = R_CURL;
+        break;
+      case '@':
+        addChar();
+        nextToken = LO_OP;
+        break;
+      case '^':
+        addChar();
+        nextToken = EX_PO;
+        break;
+      case '--':
+        addChar();
+        nextToken = UN_OP;
+        break;
+      case '!':
+        addChar();
+        nextToken = L_NOT;
+        break;
+      case '&':
+        addChar();
+        nextToken = L_AND;
+        break;
+      case '|':
+        addChar();
+        nextToken = L_OR;
+        break;
+      case ',':
+        addChar();
+        nextToken = C_MMA;
+        break;
+      
+           }
+      
+      
+  return nextToken;
+} 
+
+/* This function adds the nextChar to lexeme*/
+void addChar(void) {
+    if(lexLen <= 200) {
+        lexeme[lexLen++] = nextChar;
+        lexeme[lexLen] = '\0';
+    } else 
+    printf("Error - the lexeme is too long \n");
+    }
+
+/* This function determines the character class of the character of input */
+void getChar(void) {
+    if ((nextChar = getc(newfile) !=EOF )) {
+        if (isalpha(nextChar))
+            charClass = LETTER;
+        else if (isdigit(nextChar))
+            charClass = NAT;  //natural literal 
+        else 
+            charClass = UNKNOWN;     
+    } else 
+        charClass = EOF;
+}
+
+/* This function calls getChar until a non-whitespace character is returned*/
+
+void getNonSpace(void){
+    while (isspace(nextChar))
+    getChar();
+}
+/* function for the lexical analyzer, accounts for letters, digits, and the variables, the automata for each variable is broken down 
+in this function. */
+int lex(void){
+    lexLen = 0;
+    getNonSpace();
+ switch (charClass) {
+    case LETTER:
+            addChar (); 
+            getChar ();
+            while (charClass == LETTER){
+            addChar ();
+            getChar ();
+          if ((nextToken = 'c')){ //variable declaration for character
+            nextToken = CH;
+            addChar ();
+            getChar ();
+          }
+          if((nextToken = 's')){ //variable declaration for string 
+	            nextToken = STR;
+            addChar ();
+            getChar ();
+	          }
+          if ((nextToken = 'b')){ //variable declaration for boolean;
+            nextToken = BOOL;
+            addChar ();
+            getChar ();
+            }  
+          if ((nextToken = 'n')){ //variable declaration for natural literal;
+            nextToken = NAT;
+            addChar ();
+            getChar ();
+            }   
+            if ((nextToken = 'r')){ //variable declaration for real literal;
+            nextToken = NAT;
+            addChar ();
+            getChar ();
+            }  
+              }
+        nextToken = IDENT;
+         break;
+
+      case NAT:
+            addChar();
+            getChar();
+            while(charClass == NAT){
+                addChar();
+                getChar();
+              if(nextToken == '.' && charClass == DIGIT){
+                nextToken = R_LIT;
+              }
+              }
+		    nextToken = UNKNOWN;
+          break;
+
+      case CH: 
+        addChar();
+        getChar();
+        if(charClass == LETTER && sizeof(lexeme) == 1){
+          if(nextToken != 'c' && nextToken != 'b' && nextToken != 's' && nextToken != 'n' && nextToken!= 'r'){
+            addChar();
+            getChar();
+          } else{
+        printf("Error\n");
+        } while(sizeof(lexeme) == 2){
+           if(nextToken == '\\' && nextToken == 'n'){
+          nextToken = NEW_LINE;
+	        addChar();
+          getChar();
+        }
+	      if(nextToken == '\\' && nextToken == 'b'){
+          nextToken = BACK;
+	        addChar();
+          getChar();
+        }
+	      if(nextToken == '\\' && nextToken == 't'){
+          nextToken = TAB; 
+	        addChar();
+          getChar();
+        }
+	      if(nextToken == '\\' && nextToken == '\'' ){
+          nextToken = S_QUOTE;
+          addChar();
+          getChar();
+        }
+	      if(nextToken == '\\' && nextToken == '\"'){
+          nextToken = D_QUOTE;
+	        addChar();
+          getChar();
+        }
+	      if(nextToken == '\\' && nextToken == '\\'){
+          nextToken = BACK_SLASH;
+	        addChar();
+          getChar();
+          }
+        }
+        }
+        nextToken = UNKNOWN;
+        break;
+      case STR:
+        addChar();
+        getChar();
+        if(charClass == LETTER && sizeof(lexeme) >= 1 ){
+          addChar();
+          getChar();
+        }
+        if(nextToken == '\\' && nextToken == 'n'){
+          nextToken = NEW_LINE;
+	        addChar();
+          getChar();
+        }
+	      if(nextToken == '\\' && nextToken == 'b'){
+          nextToken = BACK;
+	        addChar();
+          getChar();
+        }
+	      if(nextToken == '\\' && nextToken == 't'){
+          nextToken = TAB; 
+	        addChar();
+          getChar();
+        }
+	      if(nextToken == '\\' && nextToken == '\'' ){
+          nextToken = S_QUOTE;
+          addChar();
+          getChar();
+        }
+	      if(nextToken == '\\' && nextToken == '\"'){
+          nextToken = D_QUOTE;
+	        addChar();
+          getChar();
+        }
+	      if(nextToken == '\\' && nextToken == '\\'){
+          nextToken = BACK_SLASH;
+	        addChar();
+          getChar();
+        }
+	      nextToken = UNKNOWN;
+	      break;
+            case IDENT:
+        addChar();
+        getChar();
+      if(charClass == LETTER){
+        if(sizeof(lexeme) <= 25){
+          addChar();
+          getChar();
+        }
+      }
+      nextToken = UNKNOWN;
+      break;
+              
+        case UNKNOWN:
+            lookup(nextChar);
+            getChar();
+            break;
+              }
+        
+printf("The next token is: %d, the next lexeme is %s\n", nextToken, lexeme);
+return nextToken;
+              
+}
+};
+class RDA{
+/*
+The following code produces an RDA for the following production rules. 
+S is the starting state. 
+S -> <stmt> 
+<stmt> —> <loop_stmt> ; | <block> ; | <ass_ign> ;| <if_stmt> ;| <var>; | <func_stmt> | <ass_ignbool> ; 
+<block> —> ‘{‘ { <stmt> ‘;’ } ‘}’
+<if_stmt> —> ‘$’’(‘ <bool_expr> ‘)’ <stmt> { ‘else’ <stmt> }
+<loop_stmt> --> '@' '(' <bool_expr> ')' '{' <stmt> '}'
+<bool_expr>  —> ‘(‘ <expr> {‘<' | ‘>’ |  ‘<==‘ | ‘>==‘ | '==' | '!=='| '!' | '&' | '|' } <expr>‘)’
+<var>  —>  ('c' | 's' | 'b' | 'n' | 'r')  ‘ id ‘;’ <ass_ignbool> | <ass_ign> 
+* note --> in variable declaration, the variable type is before the id 
+but in assignment the id is before the variable type. Assignment of boolean
+must begin with one *
+<ass_ignbool> --> '*' id b '=' ('true'| 'false')
+<ass_ign> —>  id ('c' | 's' | 'n' | 'r')  ‘=‘ <e> ';'
+<func_stmt> --> '**' id '('  var ','  var ')' '{' <stmt> '}' ';' 
+* note --> based off of the rules I have created, there are only 2 parameters allowed in each function declaration. 
+<e> —> <t> { ( ‘/‘ | ‘%’ | ‘-‘ | '^') <t> }
+<t> —> <f> { ( ‘*’ | ‘+’) <f> }
+<f> —> ‘(‘ <e> ‘)’ | c | s | b | n | r | id  '(' '-''-'<e>')'
+*/
+void stmt (void){
+  if(nextToken = I_F){
+    if_stmt();
+    if(nextToken = E_ST){
+      lex();
+    }else{
+    printf("Error\n");
+  }
+  }
+  else if(nextToken = L_CURL){
+    block();
+    if(nextToken = E_ST){
+      lex();
+    }else{
+    printf("Error\n");
+  }
+  } else if(nextToken = IDENT){
+    as_sign();
+    if(nextToken = E_ST){
+      lex();
+    }else{
+    printf("Error\n");
+  }
+  } else if(nextToken = LO_OP){
+    loop();
+    if(nextToken = E_ST){
+      lex();
+    }else{
+    printf("Error\n");
+  } 
+  }else if(nextToken = CH || STR || BOOL ||  'n' ||  'r'){
+    var();
+    if(nextToken = E_ST){
+      lex();
+    }else{
+    printf("Error\n");
+  } 
+    }else if(nextToken = '***'){
+    as_signbool();
+    if(nextToken = E_ST){
+      lex();
+    }else{
+    printf("Error\n");
+  } 
+  }else if(nextToken = '**'){
+    func_stmt();
+    if(nextToken = E_ST){
+      lex();
+    }else{
+    printf("Error\n");
+  } 
+  }
+}
+void block(void){
+  if(nextToken = L_CURL){
+    lex();
+    while(nextToken = LO_OP || IDENT || L_CURL){
+      stmt();
+    }
+    if (nextToken = E_ST){
+      lex();
+    }
+    if(nextToken = R_CURL){
+      lex();
+    }
+  } else{
+    printf("Error\n");
+  }
+}
+void if_stmt(void){
+  if(nextToken = I_F){
+    lex();
+    if(nextToken = LEFT_PAREN){
+      lex();
+      bool_expr();
+      if(nextToken = RIGHT_PAREN){
+        lex();
+        stmt();
+      if(nextToken = 'else'){
+        lex();
+        stmt();
+      }
+      } else{
+    printf("Error\n");
+  }
+      }else{
+    printf("Error\n");
+  }
+  }else{
+    printf("Error\n");
+  }  
+}
+void loop(void){
+  if(nextToken = LO_OP){
+    lex();
+    if(nextToken = LEFT_PAREN){
+      lex();
+      bool_expr();
+      if(nextToken = RIGHT_PAREN){
+        lex();
+        if(nextToken = L_CURL){
+          lex();
+          stmt();
+          if(nextToken = R_CURL){
+            lex();
+          } else{
+    printf("Error\n");
+  }
+        }else{
+    printf("Error\n");
+  }
+      }else{
+    printf("Error\n");
+  }
+    }else{
+    printf("Error\n");
+  }
+  }else{
+    printf("Error\n");
+  }
+}
+void bool_expr(void){
+  if(nextToken = LEFT_PAREN){
+    lex();
+    if(nextToken = IDENT){
+    lex();
+  }else{
+    printf("Error\n");
+  }
+  while(nextToken = LESS_THAN || GRTR_THAN || LE_T || GE_T || NE_T || E_T || L_AND || L_NOT || L_OR){
+    lex();
+    expr();
+  }
+    if(nextToken = RIGHT_PAREN){
+    lex();
+      if(nextToken = E_ST){
+        lex();
+      }else{
+    printf("Error\n");
+  }
+  }else{
+    printf("Error\n");
+  }
+    }else{
+    printf("Error\n");
+  }
+}
+void var(void){
+  if(nextToken = CH || STR || BOOL ||  'n' ||  'r'){
+    lex();
+  if(nextToken = IDENT){
+      lex();
+    if (nextToken = E_ST){
+      lex();
+      stmt();
+      }else{
+    printf("Error\n");
+  }
+    }else{
+    printf("Error\n");
+  }
+  } else{
+    printf("Error\n");
+  }
+}
+void as_signbool(void){
+  if (nextToken = '***'){
+    lex();
+    if(nextToken = IDENT){
+      lex();
+      if(nextToken = BOOL){
+        lex();
+        if(nextToken = E_T){
+          lex();
+          if(nextToken = 'true'| 'false'){
+            lex();
+          }else{
+    printf("Error\n");
+  }
+        }else{
+    printf("Error\n");
+  }
+      }else{
+    printf("Error\n");
+  }
+    }else{
+    printf("Error\n");
+  }
+  }else{
+    printf("Error\n");
+  }
+}
+void as_sign(void){
+  if (nextToken = IDENT){
+    lex();
+  if(nextToken = CH || STR || BOOL || 'n' ||  'r' ){
+    lex();
+    if(nextToken = E_T){
+    lex();
+    expr();
+    if(nextToken = NAT || R_LIT ){
+      lex();
+      }else{
+    printf("Error\n");
+  }   
+    }else{
+    printf("Error\n");
+  }
+  if(nextToken = E_ST){
+    lex();
+    }else{
+    printf("Error\n");
+  }
+  }else{
+    printf("Error\n");
+  }
+    }else{
+    printf("Error\n");
+  }
+  }
+void func_stmt(void){
+  if(nextToken = '**'){
+    lex();
+    if(nextToken = IDENT){
+      lex();
+      if(nextToken = LEFT_PAREN){
+        lex();
+        var();
+        if(nextToken = C_MMA){
+          lex();
+          var();
+          if(nextToken = RIGHT_PAREN){
+            lex();
+            if(nextToken = L_CURL){
+              lex();
+              stmt();
+              if(nextToken = R_CURL){
+                lex();
+                if(nextToken = E_ST){
+                  lex();
+                }else{
+    printf("Error\n");
+  }
+              }else{
+    printf("Error\n");
+  }
+            }else{
+    printf("Error\n");
+  }
+          }else{
+    printf("Error\n");
+  }
+        }else{
+    printf("Error\n");
+  }
+      }else{
+    printf("Error\n");
+  }
+    }else{
+    printf("Error\n");
+  }
+  }else{
+    printf("Error\n");
+  }
+}
+void expr(void){
+    term();
+    while(nextToken = MULT_OP || ADD_OP || EX_PO){
+        lex();
+        term();
+    } 
+}
+void term(void){
+    factor();
+    while(nextToken = DIV_OP || SUB_OP || MOD_OP){
+        lex();
+        factor();
+    }
+}
+void factor(void){
+  if(nextToken = LEFT_PAREN){
+      lex();
+      if(nextToken = '--'){
+        expr();
+      } else {
+        expr();
+      }
+      if(nextToken = RIGHT_PAREN){
+       lex();
+      }else{
+    printf("Error\n");
+  }
+    }else{
+    printf("Error\n");
+  }
+    if(nextToken = IDENT){
+        lex();
+    }else{
+    printf("Error\n");
+  }
+    if(nextToken =  CH || STR || BOOL || 'n'|| 'r'){
+      lex();
+      var();
+    }else{
+    printf("Error\n");
+  }
+}
+};
